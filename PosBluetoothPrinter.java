@@ -379,16 +379,15 @@ public class PosBluetoothPrinter {
     }
 
 
+    public Bitmap getMultiLangTextAsImage(String text, Paint.Align align, float textSize, Typeface typeface)  {
 
-    public Bitmap getMultiLangTextAsImage(String stringData, Paint.Align align, float textSize, Typeface typeface)  {
 
+        Paint paint = new Paint();
 
-        Paint pnt = new Paint();
-
-        pnt.setAntiAlias(true);
-        pnt.setColor(Color.BLACK);
-        pnt.setTextSize(textSize);
-        if (typeface != null) pnt.setTypeface(typeface);
+        paint.setAntiAlias(true);
+        paint.setColor(Color.BLACK);
+        paint.setTextSize(textSize);
+        if (typeface != null) paint.setTypeface(typeface);
 
         // A real printlabel width (pixel)
         float xWidth = 385;
@@ -408,18 +407,18 @@ public class PosBluetoothPrinter {
         // or '\n' character included,
         // each lines splitted from the original string are added in this list
         // 'PrintData' class has 3 members, x, y, and splitted string data.
-        List<PrintData> finalStringDatas = new ArrayList<PrintData>();
+        List<PrintData> printDataList = new ArrayList<PrintData>();
 
         // if '\n' character included in the original string
-        String[] tmpSplitList = stringData.split("\\n");
+        String[] tmpSplitList = text.split("\\n");
         for (int i = 0; i <= tmpSplitList.length - 1; i++) {
             String tmpString = tmpSplitList[i];
 
             // calculate a width in each split string item.
-            float fWidthOfString = pnt.measureText(tmpString);
+            float widthOfString = paint.measureText(tmpString);
 
             // If the each split string item's length is over the width of print label,
-            if (fWidthOfString > xWidth) {
+            if (widthOfString > xWidth) {
                 String lastString = tmpString;
                 while (!lastString.isEmpty()) {
 
@@ -427,57 +426,57 @@ public class PosBluetoothPrinter {
 
                     // retrieve repeatedly until each split string item's length is
                     // under the width of print label
-                    while (fWidthOfString > xWidth) {
+                    while (widthOfString > xWidth) {
                         if (tmpSubString.isEmpty())
                             tmpSubString = lastString.substring(0, lastString.length() - 1);
                         else
                             tmpSubString = tmpSubString.substring(0, tmpSubString.length() - 1);
 
-                        fWidthOfString = pnt.measureText(tmpSubString);
+                        widthOfString = paint.measureText(tmpSubString);
                     }
 
                     // this each split string item is finally done.
                     if (tmpSubString.isEmpty()) {
                         // this last string to print is need to adjust align
                         if (align == Paint.Align.CENTER) {
-                            if (fWidthOfString < xWidth) {
-                                xPos = ((xWidth - fWidthOfString) / 2);
+                            if (widthOfString < xWidth) {
+                                xPos = ((xWidth - widthOfString) / 2);
                             }
                         } else if (align == Paint.Align.RIGHT) {
-                            if (fWidthOfString < xWidth) {
-                                xPos = xWidth - fWidthOfString;
+                            if (widthOfString < xWidth) {
+                                xPos = xWidth - widthOfString;
                             }
                         }
-                        finalStringDatas.add(new PrintData(xPos, yPos, lastString));
+                        printDataList.add(new PrintData(xPos, yPos, lastString));
                         lastString = "";
                     } else {
                         // When this logic is reached out here, it means,
                         // it's not necessary to calculate the x position
                         // 'cause this string line's width is almost the same
                         // with the width of print label
-                        finalStringDatas.add(new PrintData(0f, yPos, tmpSubString));
+                        printDataList.add(new PrintData(0f, yPos, tmpSubString));
 
                         // It means line is needed to increase
                         yPos += 27;
                         xHeight += 30;
 
                         lastString = lastString.replaceFirst(tmpSubString, "");
-                        fWidthOfString = pnt.measureText(lastString);
+                        widthOfString = paint.measureText(lastString);
                     }
                 }
             } else {
                 // This split string item's length is
                 // under the width of print label already at first.
                 if (align == Paint.Align.CENTER) {
-                    if (fWidthOfString < xWidth) {
-                        xPos = ((xWidth - fWidthOfString) / 2);
+                    if (widthOfString < xWidth) {
+                        xPos = ((xWidth - widthOfString) / 2);
                     }
                 } else if (align == Paint.Align.RIGHT) {
-                    if (fWidthOfString < xWidth) {
-                        xPos = xWidth - fWidthOfString;
+                    if (widthOfString < xWidth) {
+                        xPos = xWidth - widthOfString;
                     }
                 }
-                finalStringDatas.add(new PrintData(xPos, yPos, tmpString));
+                printDataList.add(new PrintData(xPos, yPos, tmpString));
             }
 
             if (i != tmpSplitList.length - 1) {
@@ -488,15 +487,15 @@ public class PosBluetoothPrinter {
         }
 
         // If you want to print the text bold
-        //pnt.setTypeface(Typeface.create(null as String?, Typeface.BOLD))
+        //paint.setTypeface(Typeface.create(null as String?, Typeface.BOLD))
 
         // create bitmap by calculated width and height as upper.
         Bitmap bm = Bitmap.createBitmap((int) xWidth, (int) xHeight, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bm);
         canvas.drawColor(Color.WHITE);
 
-        for (PrintData tmpItem : finalStringDatas)
-            canvas.drawText(tmpItem.strData, tmpItem.xPos, tmpItem.yPos, pnt);
+        for (PrintData tmpItem : printDataList)
+            canvas.drawText(tmpItem.text, tmpItem.xPos, tmpItem.yPos, paint);
 
 
         return bm;
@@ -505,12 +504,12 @@ public class PosBluetoothPrinter {
     static class PrintData {
         float xPos;
         float yPos;
-        String strData;
+        String text;
 
-        public PrintData(float xPos, float yPos, String strData) {
+        public PrintData(float xPos, float yPos, String text) {
             this.xPos = xPos;
             this.yPos = yPos;
-            this.strData = strData;
+            this.text = text;
         }
 
         public float getxPos() {
@@ -529,12 +528,12 @@ public class PosBluetoothPrinter {
             this.yPos = yPos;
         }
 
-        public String getStrData() {
-            return strData;
+        public String getText() {
+            return text;
         }
 
-        public void setStrData(String strData) {
-            this.strData = strData;
+        public void setText(String text) {
+            this.text = text;
         }
     }
 
