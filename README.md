@@ -35,3 +35,5 @@ A simple project that makes printing via bluetooth printers easier, it supports 
 ```
 ## Result
 ![Print result](print.jpg)
+
+https://www.buymeacoffee.com/yagoubgrine
